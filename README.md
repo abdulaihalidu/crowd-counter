@@ -41,9 +41,10 @@ Install required dependencies:
 
 >install -r requirements.txt
 
-### Usage
->bashCopypython crowd_counter.py [OPTIONS]
-Options:
+## Usage
+>python crowd_counter.py [OPTIONS]
+
+**Options**
 
 --background, -b: Path to background image (default: ./Data/background.jpg)
 --imgs_dir, -i: Directory containing people images (default: ./Data/Images)
@@ -54,21 +55,23 @@ Options:
 --bbox_overlap_threshold, -bot: Bounding box overlap threshold (default: 0.8)
 --point_in_bbox_threshold, -pit: Point-in-bbox pixel threshold (default: 20)
 
-Example
+**Example**
 >python crowd_counter.py -b ./background.jpg -i ./test_images -o ./results -ct 0.4 -cb 0.2
-Output
-The tool generates:
 
-Detailed result images in the specified output directory
-Logging information in console
-Performance metrics including:
+**Output Contents**
 
+
+- Detailed result images in the specified output directory
+- Logging in console
+- Performance metrics including:
+```
 Total images processed
+Total ground truth and detected points
 Mean Root Squared Error
 Precision and Recall
-Total ground truth and detected points
+```
 
-### Algorithm Overview
+## Algorithm Overview
 
 #### Image Preprocessing
 - Load background and test images
@@ -91,22 +94,20 @@ Total ground truth and detected points
 - Match detected points with ground truth
 - Calculate accuracy metrics
 
-
-
 ## Customization
 The CrowdCounter class allows extensive customization through initialization parameters, enabling fine-tuning for different scenarios.
 
-### Limitations
+## Limitations
 - Requires a static background image
 - Performance depends on image quality and complexity
 - Best suited for controlled environments
+
+## Authors
+- Halidu Abdulai
+- Ahmed Kamal Baig
 
 ## Contributing
 Contributions are welcome! Please submit pull requests or open issues to suggest improvements or report bugs.
 License
 
 Free to use provided credits is given
-
-### Authors
-- Halidu Abdulai
-- Ahmed Kamal Baig
