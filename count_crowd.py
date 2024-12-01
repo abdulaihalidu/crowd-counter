@@ -113,7 +113,7 @@ class CrowdCounter:
         image_with_annotations = image.copy()
         for _, row in image_df_subset.iterrows():
             x, y = row["x"], row["y"]
-            cv2.circle(image_with_annotations, (x, y), 10, (0, 255, 0), -1)
+            cv2.circle(image_with_annotations, (x, y), 5, (255, 165, 0), -1)
         return image_with_annotations
 
     def _convert_to_gray(self, image: np.ndarray) -> np.ndarray:
