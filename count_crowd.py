@@ -478,7 +478,7 @@ def main():
                         default="./Results", 
                         help="Path to the output directory")
     parser.add_argument("--crop_top_percentage", "-ct", type=float, 
-                        default=0.5, 
+                        default=0.45, 
                         help="Percentage of the image to crop from the top")    
     parser.add_argument("--crop_bottom_percentage", "-cb", type=float, 
                         default=0.1,    
