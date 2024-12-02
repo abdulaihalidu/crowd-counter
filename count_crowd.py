@@ -113,7 +113,7 @@ class CrowdCounter:
         image_with_annotations = image.copy()
         for _, row in image_df_subset.iterrows():
             x, y = row["x"], row["y"]
-            cv2.circle(image_with_annotations, (x, y), 10, (0, 255, 0), -1)
+            cv2.circle(image_with_annotations, (x, y), 5, (255, 165, 0), -1)
         return image_with_annotations
 
     def _convert_to_gray(self, image: np.ndarray) -> np.ndarray:
@@ -258,28 +258,35 @@ class CrowdCounter:
         
         return in_x and in_y
 
-    def _calculate_correct_detection(self, 
+    def _calculate_correct_detections(self, 
                             img_df: pd.DataFrame, 
                             detected_bboxes: list[tuple[int, int, int, int]]) -> tuple[int, int]:
         """
-        Calculate accuracy by matching ground truth points to detected bounding boxes.
+        Calculate the number of correctly detected bounding boxes
         
         Args:
             img_df (pd.DataFrame): DataFrame with ground truth point annotations
             detected_bboxes (List[Tuple[int, int, int, int]]): List of detected bounding boxes
         
         Returns:
-            Tuple[int, int]: (correctly detected points, total ground truth points)
+            List[int]: List of indices of correctly detected bounding boxes
         """
-        correctly_detected = 0
-        for _, row in img_df.iterrows():
+        # Initialize list to store correct detection indices
+        detections = []
+        
+        for idx, row in img_df.iterrows():
             point = (row['x'], row['y'])
-            
-            # Check if point is in any of the detected bounding boxes
-            if any(self._point_in_bbox(point, bbox) for bbox in detected_bboxes):
-                correctly_detected += 1
-                    
-        return correctly_detected, len(img_df)
+            closest_bbxs = []
+            for bbox_idx, bbox in enumerate(detected_bboxes):
+                if self._point_in_bbox(point, bbox):
+                    closest_bbxs.append((bbox_idx, bbox))
+            if closest_bbxs:
+                if len(closest_bbxs) == 1:
+                    detections.append(closest_bbxs[0][0])
+                else:
+                    closest_bbxs_distances = [np.sqrt((x - point[0]) ** 2 + (y - point[1]) ** 2) for idx, (x, y, _, _) in closest_bbxs]
+                    detections.append(closest_bbxs[np.argmin(closest_bbxs_distances)][0]) 
+        return detections
     
     def _mean_root_squared_error(self,num_people_truth, num_people_detected):
         """
@@ -364,7 +371,7 @@ class CrowdCounter:
                     
                     original_crowd_count = len(img_df)
 
-                    original_image_with_annotations = self._draw_annotations_on_image(
+                    original_image_with_gt_annotation = self._draw_annotations_on_image(
                         original_image, img_df)
                     
                     cropped_original_img = self._crop_image(
@@ -389,6 +396,7 @@ class CrowdCounter:
                     
                     _, contours = self._detect_crowd(difference_thresholded_image)
                     
+                    original_image_with_all_annotations = original_image_with_gt_annotation.copy()
                     # Filter nested bounding boxes
                     if contours is not None:
                         original_img = original_image.copy()
@@ -398,30 +406,35 @@ class CrowdCounter:
                         # Get filtered bounding boxes
                         filtered_bboxes = self._filter_nested_bounding_boxes(contours)
                         
-                        # Draw filtered bounding boxes
-                        for bbox in filtered_bboxes:
-                            x, y, w, h = bbox
-                            cv2.rectangle(original_img, (x, y+top), (x+w, y+h+top), (0, 255, 0), 2)
-                        
                         # Calculate accuracy
-                        correct_points, total_points = self._calculate_correct_detection(
+                        correct_detections = self._calculate_correct_detections(
                             img_df, 
                             [(x, y+top, w, h) for (x, y, w, h) in filtered_bboxes])
                         
+                        # Draw filtered bounding boxes
+                        for bbox_idx, bbox in enumerate(filtered_bboxes):
+                            # Default color is red
+                            color = (255, 0, 0)
+                            # If bbox is in correct detections (which has the index of the point and bbox)
+                            if bbox_idx in correct_detections:
+                                color = (0, 255, 0)
+                            x, y, w, h = bbox
+                            cv2.rectangle(original_image_with_all_annotations, (x, y+top), (x+w, y+h+top), color, 2)
+                        
                         # Update overall metrics
                         self.total_images += 1
-                        self.total_ground_truth_points += total_points
-                        self.correctly_detected_points += correct_points
+                        self.total_ground_truth_points += len(img_df)
+                        self.correctly_detected_points += len(correct_detections)
 
                         num_people_truth.append(original_crowd_count)
                         num_people_detected.append(len(filtered_bboxes))
                     
                     # Save result image
                     self._save_result_image(
-                        original_image_with_annotations, 
+                        original_image_with_gt_annotation, 
                         difference_thresholded_image, 
                         shadow_mask,
-                        original_img if contours is not None else original_image, 
+                        original_image_with_all_annotations, 
                         f"{self.output_dir}/{filename.split('.')[0]}.png", 
                         original_crowd_count, 
                         len(filtered_bboxes) if contours is not None else 0
@@ -465,7 +478,7 @@ def main():
                         default="./Results", 
                         help="Path to the output directory")
     parser.add_argument("--crop_top_percentage", "-ct", type=float, 
-                        default=0.5, 
+                        default=0.45, 
                         help="Percentage of the image to crop from the top")    
     parser.add_argument("--crop_bottom_percentage", "-cb", type=float, 
                         default=0.1,    
