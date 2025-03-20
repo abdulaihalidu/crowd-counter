@@ -3,6 +3,8 @@ Crowd-Counting Algorithm based on pixel-level operations
 ## Overview
 This Python-based Crowd Counting Computer Vision Tool is designed to detect and count people in images using  image processing techniques. The tool leverages OpenCV and other image processing libraries to analyze crowd density and provide an estimate of the number of  people in a given image.
 
+![Crowd Counting Visualization](Results/1660662000.png)
+
 ## Features
 #### Advanced Image Processing: Utilizes multiple image processing techniques including:
 - Canny edge detection
