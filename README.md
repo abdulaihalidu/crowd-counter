@@ -47,7 +47,7 @@ Install required dependencies:
 >python crowd_counter.py [OPTIONS]
 
 **Options**
-
+```
 --background, -b: Path to background image (default: ./Data/background.jpg)
 --imgs_dir, -i: Directory containing people images (default: ./Data/Images)
 --annotation, -a: Path to annotation CSV file (default: ./Data/Annotations/labels.csv)
@@ -56,6 +56,7 @@ Install required dependencies:
 --crop_bottom_percentage, -cb: Percentage to crop from bottom (default: 0.1)
 --bbox_overlap_threshold, -bot: Bounding box overlap threshold (default: 0.8)
 --point_in_bbox_threshold, -pit: Point-in-bbox pixel threshold (default: 20)
+```
 
 **Example**
 >python crowd_counter.py -b ./background.jpg -i ./test_images -o ./results -ct 0.4 -cb 0.2
